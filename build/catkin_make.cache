@@ -1,0 +1,2 @@
+my_project_test
+-DCATKIN_DEVEL_PREFIX=/home/workSpace/Pro-UIF-master/devel -DCMAKE_INSTALL_PREFIX=/home/workSpace/Pro-UIF-master/install -G Unix Makefiles

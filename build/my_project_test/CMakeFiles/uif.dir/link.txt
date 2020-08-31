@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC   -shared -Wl,-soname,libuif.so -o /home/workSpace/Pro-UIF-master/devel/lib/libuif.so CMakeFiles/uif.dir/src/uif.cpp.o  -L/opt/ros/kinetic/lib  -L/home/workSpace/Pro-UIF-master/src/my_project_test/devel/lib 
