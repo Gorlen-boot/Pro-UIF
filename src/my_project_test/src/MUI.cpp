@@ -15,13 +15,14 @@ int main(int argc, char **argv)
     ct = Get_msg;
     uiToCanMsg_t msg;
     setMsgChannel("ROS");
-    setVehicleTesting("MT4400"); 
+    setVehicleTesting("930E"); 
     canAdapterInit(argc,argv,ct);  
     while(1)
     {
         msg.throttle=2.5;
         msg.dump_bed=counter;
         msg.gear=3;
+        //msg.asternLamp_b=1;
         sendToCanAdapter(msg);
         ROS_INFO("Have sented [%d] msg",counter);
         counter++;

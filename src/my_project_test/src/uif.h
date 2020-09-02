@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 #include <sstream>
 #include <string>
 #include <pthread.h>
@@ -14,13 +15,9 @@
 #include <linux/can/raw.h>
 #include <signal.h>
 #include "ros/ros.h"
-#include "my_project_test/can_out_MT4000.h"
-#include "my_project_test/ctr_can_MT4000.h"
 
 using namespace std;
 
-#define VNUM   5
-#define MUITI_COMM 1
 #define CAN_EFF_FLAG 0x80000000U /*标准帧标识 */
 #define CAN_RTR_FLAG 0x40000000U /* 远程帧标识*/
 #define CAN_ERR_FLAG 0x20000000U /* 错误帧标识*/
@@ -39,26 +36,27 @@ typedef map<string, vehileAttr_t> vehileSupported_t;
 
 typedef struct
 {
-    bool driverMode_b;           //自动模式开关 0:人工驾驶   1：自动驾驶
-    float throttle;              //油门踏板指令 0-100
-    float electronic_break;      //电制动踏板指令 0-100
-    float hydraulic_break;       //液压制动踏板指令 0-100
-    float steerAngle;            //前轮转向角度[-350,250]，1=1度，左转为正数最大25度，右转为负数最值为-35度
-    bool park_b;                 // 驻车制动, 0 无动作， 1 动作
-    bool loadBrake_b;            // 装载制动, 0 无动作， 1 动作
-    int gear;                    //档位指令 0：空挡 1：前进档 2：倒车档
-    float dump_bed;              //货箱举升高度指令 0-100
-    bool powerSupply_b;          // 断电指令, 0 无动作， 1 动作
-    bool engine_b;               // 发送机熄火指令, 0 无动作， 1 动作
-    bool turtle_b;               // 龟速模式, 0 无动作， 1 动作
-    bool lubricate_b;            // 强制润滑, 0 无动作， 1 动作
-    bool firePrevent_b;          // 消防, 0 无动作， 1 动作
-    bool emergencyBrake_b;       // 紧急制动, 0 无动作， 1 动作
-    bool lighting_b;             // 照明, 0 无动作， 1 动作
-    bool horn_b;                 // 喇叭, 0 无动作， 1 动作
-    bool leftLamp_b;             // 转向灯, 0 无动作， 1 动作
-    bool rightLamp_b;            // 转向灯, 0 无动作， 1 动作
-    bool bothLamp_b;             // 双闪, 0 无动作， 1 动作
+    bool  driverMode_b;           //自动模式开关 0:人工驾驶   1：自动驾驶
+    float throttle;               //油门踏板指令 0-100
+    float electronic_break;       //电制动踏板指令 0-100
+    float hydraulic_break;        //液压制动踏板指令 0-100
+    float steerAngle;             //前轮转向角度[-350,250]，1=1度，左转为正数最大25度，右转为负数最值为-35度
+    bool  park_b;                 // 驻车制动, 0 无动作， 1 动作
+    bool  loadBrake_b;            // 装载制动, 0 无动作， 1 动作
+    int   gear;                   //档位指令 0：空挡 1：前进档 2：倒车档
+    float dump_bed;               //货箱举升高度指令 0-100
+    bool  powerSupply_b;          // 断电指令, 0 无动作， 1 动作
+    bool  engine_b;               // 发送机熄火指令, 0 无动作， 1 动作
+    bool  turtle_b;               // 龟速模式, 0 无动作， 1 动作
+    bool  lubricate_b;            // 强制润滑, 0 无动作， 1 动作
+    bool  firePrevent_b;          // 消防, 0 无动作， 1 动作
+    bool  emergencyBrake_b;       // 紧急制动, 0 无动作， 1 动作
+    bool  lighting_b;             // 照明, 0 无动作， 1 动作
+    bool  horn_b;                 // 喇叭, 0 无动作， 1 动作
+    bool  leftLamp_b;             // 转向灯, 0 无动作， 1 动作
+    bool  rightLamp_b;            // 转向灯, 0 无动作， 1 动作
+    bool  bothLamp_b;             // 双闪, 0 无动作， 1 动作
+    bool  asternLamp_b;           //倒车灯 ,0 无动作, 1 动作
 } uiToCanMsg_t;
 
 typedef struct
@@ -80,7 +78,7 @@ typedef struct
     uint8_t faultTotal;          // 整车故障, 0：无故障, 1：一般故障,2：严重故障,3：致命故障
     uint8_t dump_bed;            // 货箱举升实时角度反馈    0-100   货箱举升实时角度反馈  1=1%
     float loading;               // 载重量   0-255   载重量 1=1T
-    float elecControlTemp;       // 电控箱温度信息反馈 0-125 电控箱温度信息反馈 -40 offset
+    float elecControlTem;        // 电控箱温度信息反馈 0-125 电控箱温度信息反馈 -40 offset
     uint8_t oil;                 // 燃油油位  0-100   燃油量 1=1%
     uint32_t mileage;            // 车辆总里程数    0-2^32  车辆总里程数  1=1m/Bit
     bool lighting_b;             // 照明反馈, 0 无动作， 1 动作
@@ -89,20 +87,40 @@ typedef struct
     bool rightLamp_b;            // 转向灯反馈, 0 无动作， 1 动作
     bool bothLamp_b;             // 双闪反馈, 0 无动作， 1 动作
     float mechanical_brake;      //机械制动反馈 0-100
+    uint8_t faultCode;             
+    /*#故障代码   0-255     
+                                    # 0x00：无
+                                    # 0x01：系统故障（红）
+                                    # 0x02：系统故障（黄）
+                                    # 0x03：车辆低温故障
+                                    # 0x04：电控箱低温报警
+                                    # 0x05：电控箱高温报警
+                                    # 0x06：前制动压力故障
+                                    # 0x07：后制动压力故障
+                                    # 0x08：自动润滑故障
+                                    # 0x09：电制动高温故障
+                                    # 0x0A：制动压力低故障
+                                    # 0x0B：转向压力低故障
+                                    # 0x0C：燃油量低故障
+                                    # 0x0D：液压油温高故障
+                                    # 0x0E：液压油位低故
+                                    # 0x0F：预留 */
+    int8_t elecControlTemp;        //电控箱温度信息反馈 0-125 电控箱温度信息反馈 -40 offset
+    uint8_t faultFeedback2;	     
+    /*#0x00:推进系统报警（黄）
+			#0x01：推进系统温度（黄）
+			#0x02：接口模块故障（红色）
+			#0x03: 发动机停机（红色）
+			#0x04：蓄电池充电系统故障（红）
+			#0x05：无推进（红色） */
+    //#can id 0x29B
+    uint8_t  hydraulic_oil_temperature; 	//液压油温度 0-100
+    uint16_t oil_pressure; 		        //机油压力 0-690
+    uint8_t  engine_water_cooling;	        //#发动机冷却水温度 38-138
 } canToUiMsg_t;
 
-static uiToCanMsg_t New_Msg;
-
 typedef void (*recv_cb_t)(canToUiMsg_t *msg);
-static recv_cb_t uicb;
-static string vechleMode[VNUM]={"MT4400","test1","test2","test3","test4"};
-static int  dumpmode[VNUM]={1,1,1,0,0};
-static char Update_Flag;
-static string My_vehicleModel;
-static pthread_t thid;
-static string CurChannel;
-static int Sock_id;
-static int run_flag=0;
+static recv_cb_t   rec_ui_cb;
 
 int  canAdapterInit(int argc,char** argv,recv_cb_t uicallback);
 int  getVehicleSupported(vehileSupported_t *vMap);

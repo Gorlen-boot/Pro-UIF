@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.context.in
 
-messages_str = "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/can_out_MT4000.msg;/home/workSpace/Pro-UIF-master/src/my_project_test/msg/ctr_can_MT4000.msg"
+messages_str = "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/can_out_930E.msg;/home/workSpace/Pro-UIF-master/src/my_project_test/msg/can_out_MT4000.msg;/home/workSpace/Pro-UIF-master/src/my_project_test/msg/ctr_can_930E.msg;/home/workSpace/Pro-UIF-master/src/my_project_test/msg/ctr_can_MT4000.msg"
 services_str = ""
 pkg_name = "my_project_test"
 dependencies_str = "std_msgs"

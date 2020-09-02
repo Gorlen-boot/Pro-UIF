@@ -6,38 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/workSpace/Pro-UIF-master/devel/include/my_project_test/can_out_MT4000.h
-string
--
-vector
--
-map
--
-ros/types.h
--
-ros/serialization.h
--
-ros/builtin_message_traits.h
--
-ros/message_operations.h
--
-
-/home/workSpace/Pro-UIF-master/devel/include/my_project_test/ctr_can_MT4000.h
-string
--
-vector
--
-map
--
-ros/types.h
--
-ros/serialization.h
--
-ros/builtin_message_traits.h
--
-ros/message_operations.h
--
-
 /home/workSpace/Pro-UIF-master/src/my_project_test/src/MUI.cpp
 sstream
 -
@@ -48,6 +16,8 @@ uif.h
 iostream
 -
 map
+-
+vector
 -
 sstream
 -
@@ -71,10 +41,6 @@ signal.h
 -
 ros/ros.h
 /home/workSpace/Pro-UIF-master/src/my_project_test/src/ros/ros.h
-my_project_test/can_out_MT4000.h
-/home/workSpace/Pro-UIF-master/src/my_project_test/src/my_project_test/can_out_MT4000.h
-my_project_test/ctr_can_MT4000.h
-/home/workSpace/Pro-UIF-master/src/my_project_test/src/my_project_test/ctr_can_MT4000.h
 
 /opt/ros/kinetic/include/ros/advertise_options.h
 ros/forwards.h
@@ -282,10 +248,6 @@ boost/make_shared.hpp
 cstddef
 -
 memory
--
-
-/opt/ros/kinetic/include/ros/message_operations.h
-ostream
 -
 
 /opt/ros/kinetic/include/ros/message_traits.h

@@ -9,13 +9,13 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   std_msgs
   message_generation
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -49,10 +49,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
+  can_out_930E.msg
   can_out_MT4000.msg
-  ctr_can_MT4000.msg
-#   Message1.msg
-#   Message2.msg
+  ctr_can_930E.msg
+  ctr_can_MT4000.msg 
 )
 
 ## Generate services in the 'srv' folder
@@ -106,8 +106,8 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #INCLUDE_DIRS include
-  #LIBRARIES my_project_test
-  CATKIN_DEPENDS roscpp   std_msgs   message_runtime
+  LIBRARIES my_project_test
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
   #DEPENDS   system_lib 
 )
 
@@ -216,7 +216,7 @@ add_library(
 # endif()
 
 ## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+#catkin_add_nosetests(test)
 
 add_executable(mui src/MUI.cpp)
 target_link_libraries(mui ${catkin_LIBRARIES} uif -lroscpp -lroslib)      #-lroscpp -lroslib
