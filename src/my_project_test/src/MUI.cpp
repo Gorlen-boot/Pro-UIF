@@ -22,7 +22,7 @@ int main(int argc, char **argv)
         msg.throttle=2.5;
         msg.dump_bed=counter;
         msg.gear=3;
-        //msg.asternLamp_b=1;
+        msg.asternLamp_b=1;
         sendToCanAdapter(msg);
         ROS_INFO("Have sented [%d] msg",counter);
         counter++;
@@ -30,3 +30,4 @@ int main(int argc, char **argv)
     }
     return 0;
 }
+

@@ -53,6 +53,10 @@ add_message_files(
   can_out_MT4000.msg
   ctr_can_930E.msg
   ctr_can_MT4000.msg 
+  CmdFromControllerToCAN.msg
+  CmdFromDecisionToCAN.msg
+  CmdFromSecurityToCAN.msg
+  InfoFromCan.msg
 )
 
 ## Generate services in the 'srv' folder

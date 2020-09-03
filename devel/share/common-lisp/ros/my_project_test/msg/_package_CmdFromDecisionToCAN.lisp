@@ -1,0 +1,24 @@
+(cl:in-package my_project_test-msg)
+(cl:export '(HEADER-VAL
+          HEADER
+          HORN_CMD-VAL
+          HORN_CMD
+          HIGH_BEAM_SWITCH-VAL
+          HIGH_BEAM_SWITCH
+          DIPPED_HEADLIGHT_SWITCH-VAL
+          DIPPED_HEADLIGHT_SWITCH
+          FOG_LAMP_SWITCH-VAL
+          FOG_LAMP_SWITCH
+          NIGHT_LIGHT_SWITH-VAL
+          NIGHT_LIGHT_SWITH
+          LEFT_TURN_LIGHT_SWITCH-VAL
+          LEFT_TURN_LIGHT_SWITCH
+          RIGHT_TURN_LIGHT_SWITCH-VAL
+          RIGHT_TURN_LIGHT_SWITCH
+          DOUBLE_FLASH_SWITCH-VAL
+          DOUBLE_FLASH_SWITCH
+          TRUCK_START_SWITCH-VAL
+          TRUCK_START_SWITCH
+          TRUCK_TURN_OFF_SWITCH-VAL
+          TRUCK_TURN_OFF_SWITCH
+))

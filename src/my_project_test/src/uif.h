@@ -36,6 +36,7 @@ typedef map<string, vehileAttr_t> vehileSupported_t;
 
 typedef struct
 {
+    uint8_t NTE200_Msg_Type;      //1:Control 2:Decision 3:Security
     bool  driverMode_b;           //自动模式开关 0:人工驾驶   1：自动驾驶
     float throttle;               //油门踏板指令 0-100
     float electronic_break;       //电制动踏板指令 0-100
@@ -57,6 +58,30 @@ typedef struct
     bool  rightLamp_b;            // 转向灯, 0 无动作， 1 动作
     bool  bothLamp_b;             // 双闪, 0 无动作， 1 动作
     bool  asternLamp_b;           //倒车灯 ,0 无动作, 1 动作
+
+    /*            一下为平朔车型反馈数据                 */
+    double accel_pedal_cmd;			            //#油门控制量 0~100
+    double retard_pedal_cmd;		            //#电缓行控制量 0~100
+    int16_t gear_cmd;				            //#目标档位指令 0-N 1-D 2-R
+    double brake_pedal_cmd;			            //#液压工作制动控制量 0~100
+    int16_t lift_container_cmd;			        //#0-控制货箱保持在最低位置，1-控制货箱保持在最高位置
+    int16_t load_brake_cmd;			            //#装载制动开关 0-不制动 1-制动
+    int16_t park_brake_cmd;                     //#驻车制动开关 0-不制动 1-制动
+    double target_angle_of_control_wheel;	    //#左前轮控制轮转向角 -35~35 deg
+    
+    int16_t horn_cmd;                           //# 喇叭控制量 0/1/2/3 0：不响，1-3代表响1~3声；交通路口鸣笛
+    bool high_beam_switch; 		                //# 远光灯开关,false-关 true-开
+    bool dipped_headlight_switch;	            //# 近光灯开关,false-关 true-开
+    bool fog_lamp_switch;	                    //# 雾灯,false-关 true-开
+    bool night_light_swith;                     //# 夜行灯,false-关 true-开
+    bool left_turn_light_switch;                //# 左转灯,false-关 true-开
+    bool right_turn_light_switch; 	            //# 右转灯,false-关 true-开
+    bool double_flash_switch;                   //# 双闪,false-关 true-开
+    bool truck_start_switch;                    //# 车辆启动,false-关 true-开
+    bool truck_turn_off_switch;                 //# 车辆熄火,false-关 true-开
+
+    int16_t upper_fault_level;                  //#上层故障等级 0/1/2/3 1-绿色，表示心跳 2-黄色 3-红色等级故障
+    int16_t emergency_brake_cmd;                //#紧急制动 0：解除，1：实施，发生紧急事件时实施，执行层实施100%电缓行+100%液压制动
 } uiToCanMsg_t;
 
 typedef struct
@@ -114,13 +139,40 @@ typedef struct
 			#0x04：蓄电池充电系统故障（红）
 			#0x05：无推进（红色） */
     //#can id 0x29B
-    uint8_t  hydraulic_oil_temperature; 	//液压油温度 0-100
-    uint16_t oil_pressure; 		        //机油压力 0-690
-    uint8_t  engine_water_cooling;	        //#发动机冷却水温度 38-138
+    uint8_t  hydraulic_oil_temperature; 	   //液压油温度 0-100
+    uint16_t oil_pressure; 		               //机油压力 0-690
+    uint8_t  engine_water_cooling;	           //#发动机冷却水温度 38-138
+
+    /*            一下为平朔车型反馈数据                 */
+    int16_t executive_fault_level;             //# 执行层故障等级信号 0/1/2/3 , 1-绿色,表示心跳 2-黄色 3-红色等级故障
+    double truck_load_weight;                  //# 车辆载重信号      0~255吨
+    double hydraulic_brake_fb;                 // # 液压工作制动反馈信号 0~100 对应0~最高压力
+    int16_t auto_mode_fb;                      // # 无人/人工驾驶模式信号 0/1 0:人工驾驶，1：自动驾驶
+    int16_t emergency_brake_fb;                // # 紧急制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    int16_t container_rising;                  // # 车厢举升控制信号 0/1 1:举升中
+    int16_t container_falling;                 // # 车厢下降控制信号 0/1 1:下降中
+    int16_t container_rising_over;             //  # 车厢举升控制反馈信号 0/1 1:举升到位
+    int16_t container_falling_over;            // # 车厢下降控制反馈信号 0/1 1:下降到位
+    int16_t electric_brake_fb;                 //  # 电缓行实施  0/1  0:未实施，1：已实施
+    int16_t load_brake_fb;                     //  # 装载制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    int16_t park_brake_fb;                     //  # 驻车制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    double remaining_oil;                      // # 油量剩余 0~100 0~100%百分比范围值
+    double steer_angle_fb;                     // # 左前轮转向角（左转为正，右转为负）-35~35
+    double engine_speed;                       // # 发动机转速 0~8031.875rpm
+    double truck_speed;                        // # 车速 0~125km/h
+    int16_t gear_fb;                           //  # 档位反馈  0/1/2 0-N,1-D,2-R
 } canToUiMsg_t;
 
 typedef void (*recv_cb_t)(canToUiMsg_t *msg);
 static recv_cb_t   rec_ui_cb;
+static uiToCanMsg_t *New_Msg=nullptr;
+static char         Update_Flag;
+static string       My_vehicleModel;
+static pthread_t    thid;
+static string       CurChannel;
+static int          Sock_id;
+static int          run_flag=0;
+
 
 int  canAdapterInit(int argc,char** argv,recv_cb_t uicallback);
 int  getVehicleSupported(vehileSupported_t *vMap);
@@ -130,3 +182,22 @@ int  sendToCanAdapter(uiToCanMsg_t &msg);
 void shutdown_ros(void);
 
 #endif
+
+/*
+  不同车型使用区别
+  uiToCanMsg_t msg;
+  MT4400：
+    setMsgChannel("ROS");
+    setVehicleTesting("MT4400");  
+    msg赋值；
+
+  930E:
+    setMsgChannel("ROS");
+    setVehicleTesting("930E");  
+    msg赋值；
+
+  NTE200:
+    setMsgChannel("ROS");
+    setVehicleTesting("NTE200");  
+    msg.NTE200_Msg_Type=1 || 2 || 3;                 //1:Control 2:Decision 3:Security；
+*/

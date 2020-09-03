@@ -15,7 +15,6 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "talker");
     ros::NodeHandle n2;
     ros::Subscriber chatter_sub = n2.subscribe("ros_to_can_MT4000",200,call_back);
-
     ros::Publisher  chatter_pub = n2.advertise<my_project_test::can_out_930E>("can_to_ros_MT4000", 200);
     ros::Rate loop_rate(1);
     while(ros::ok())

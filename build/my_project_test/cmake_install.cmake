@@ -38,6 +38,10 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
     "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/can_out_MT4000.msg"
     "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/ctr_can_930E.msg"
     "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/ctr_can_MT4000.msg"
+    "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/CmdFromControllerToCAN.msg"
+    "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/CmdFromDecisionToCAN.msg"
+    "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/CmdFromSecurityToCAN.msg"
+    "/home/workSpace/Pro-UIF-master/src/my_project_test/msg/InfoFromCan.msg"
     )
 endif()
 
