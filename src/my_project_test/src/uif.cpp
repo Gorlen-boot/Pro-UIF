@@ -82,27 +82,27 @@ void callback_930E(const my_project_test::can_out_930E::ConstPtr &input)
 void callback_NTE200(const my_project_test::InfoFromCan::ConstPtr &input)
 {
     canToUiMsg_t My_CTU;
-    My_CTU.executive_fault_level = input->executive_fault_level;
-    My_CTU.truck_load_weight     = input->truck_load_weight;
-    My_CTU.hydraulic_brake_fb    = input->hydraulic_brake_fb;
-    My_CTU.auto_mode_fb          = input->auto_mode_fb;
-    My_CTU.emergency_brake_fb    = input->emergency_brake_fb;
-    My_CTU.container_rising      = input->container_rising;
-    My_CTU.container_rising_over = input->container_rising_over;
-    My_CTU.container_falling_over= input->container_falling_over;
-    My_CTU.electric_brake_fb     = input->electric_brake_fb;
-    My_CTU.load_brake_fb         = input->load_brake_fb;
-    My_CTU.park_brake_fb         = input->park_brake_fb;
-    My_CTU.remaining_oil         = input-> remaining_oil;
-    My_CTU.steer_angle_fb        = input->steer_angle_fb;
-    My_CTU.engine_speed          = input->engine_speed;
-    My_CTU.truck_speed           = input->truck_speed;
-    My_CTU.gear_fb               = input-> gear_fb;
+    My_CTU.faultTotal          = input->executive_fault_level;  //执行层故障等级信号
+    My_CTU.loading             = input->truck_load_weight;      //车辆载重信号      0~255吨
+    My_CTU.hydraulic_brake_fb  = input->hydraulic_brake_fb;     //液压工作制动反馈信号 0~100 对应0~最高压力
+    My_CTU.driverMode_b        = input->auto_mode_fb;           //无人/人工驾驶模式信号 0/1 0:人工驾驶，1：自动驾驶
+    My_CTU.emergency_brake_fb  = input->emergency_brake_fb;     //紧急制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    if(input->container_rising==1)             My_CTU.dump_bed=1<<0;
+    else if(input->container_falling==1)       My_CTU.dump_bed=1<<1;
+    else if(input->container_rising_over==1)   My_CTU.dump_bed=1<<2;
+    else if(input->container_falling_over==1)  My_CTU.dump_bed=1<<3;
+    My_CTU.electronic_break    = input->electric_brake_fb;      //电缓行实施  0/1  0:未实施，1：已实施
+    My_CTU.loadBrake_b         = input->load_brake_fb;          //装载制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    My_CTU.gearP_b             = input->park_brake_fb;          //驻车制动-实施/解除反馈信号 0/1 0:解除，1：已实施
+    My_CTU.oil                 = input->remaining_oil;          //油量剩余 0~100 0~100%百分比范围值
+    My_CTU.wheelAngle          = input->steer_angle_fb;         //左前轮转向角（左转为正，右转为负）-35~35
+    My_CTU.engineSpeed         = input->engine_speed;           //发动机转速 0~8031.875rpm
+    My_CTU.velocity            = input->truck_speed;            //车速 0~125km/h
+    My_CTU.gear                = input->gear_fb;                //档位反馈  0/1/2 0-N,1-D,2-R
     if(rec_ui_cb) 
     {
         rec_ui_cb(&My_CTU); 
     } 
-    
 }
 
 void* pth_callback(void* arg)
@@ -189,48 +189,42 @@ void* pth_callback(void* arg)
                 } 
                 else if(My_vehicleModel=="NTE200")
                 {
-                    if(New_Msg->NTE200_Msg_Type==1)  
-                    {
                         my_project_test::CmdFromControllerToCAN CCTC;
-                        CCTC.accel_pedal_cmd=New_Msg->accel_pedal_cmd;        //#油门控制量 0~100
-                        CCTC.retard_pedal_cmd=New_Msg->retard_pedal_cmd;      //#电缓行控制量 0~100
-                        CCTC.gear_cmd=New_Msg->gear_cmd;				      //#目标档位指令 0-N 1-D 2-R
-                        CCTC.brake_pedal_cmd=New_Msg->brake_pedal_cmd;		  //#液压工作制动控制量 0~100
-                        CCTC.lift_container_cmd	=New_Msg->lift_container_cmd; //#0-控制货箱保持在最低位置，1-控制货箱保持在最高位置
-                        CCTC.load_brake_cmd	=New_Msg->load_brake_cmd;         //#装载制动开关 0-不制动 1-制动
-                        CCTC.park_brake_cmd =New_Msg->park_brake_cmd;         //#驻车制动开关 0-不制动 1-制动
-                        CCTC.target_angle_of_control_wheel=New_Msg->target_angle_of_control_wheel;	//#左前轮控制轮转向角 -35~35 deg
+                       
+                        CCTC.accel_pedal_cmd=New_Msg->throttle;                 //#油门控制量 0~100
+                        CCTC.retard_pedal_cmd=New_Msg->electronic_break;        //#电缓行控制量 0~100
+                        CCTC.gear_cmd=New_Msg->gear;				            //#目标档位指令 0-N 1-D 2-R
+                        CCTC.brake_pedal_cmd=New_Msg->hydraulic_break;		    //#液压工作制动控制量 0~100
+                        CCTC.lift_container_cmd	=New_Msg->dump_bed;             //0-保持 1-举升 2-降落 3-浮动
+                        CCTC.load_brake_cmd	=New_Msg->loadBrake_b;              //#装载制动开关 0-不制动 1-制动
+                        CCTC.park_brake_cmd =New_Msg->park_b;                   //#驻车制动开关 0-不制动 1-制动
+                        CCTC.target_angle_of_control_wheel=New_Msg->steerAngle;	//#左前轮控制轮转向角 -35~35 deg
                         my_pub.publish(CCTC);
-                    }
-                    else if(New_Msg->NTE200_Msg_Type==2)
-                    {
+                       
                         my_project_test::CmdFromDecisionToCAN CDTC;
-                        CDTC.horn_cmd          =  New_Msg-> horn_cmd;                       //# 喇叭控制量 0/1/2/3 0：不响，1-3代表响1~3声；交通路口鸣笛
-                        CDTC.high_beam_switch  =  New_Msg->high_beam_switch; 		        //# 远光灯开关,false-关 true-开
-                        CDTC.dipped_headlight_switch =  New_Msg-> dipped_headlight_switch;	//# 近光灯开关,false-关 true-开
-                        CDTC.fog_lamp_switch   =  New_Msg->fog_lamp_switch;	                //# 雾灯,false-关 true-开
-                        CDTC.night_light_swith =  New_Msg->high_beam_switch;                //# 夜行灯,false-关 true-开
-                        CDTC.left_turn_light_switch =  New_Msg-> left_turn_light_switch;    //# 左转灯,false-关 true-开
-                        CDTC.right_turn_light_switch =  New_Msg-> right_turn_light_switch;	//# 右转灯,false-关 true-开
-                        CDTC.double_flash_switch =  New_Msg-> double_flash_switch;          //# 双闪,false-关 true-开
-                        CDTC.truck_start_switch  =  New_Msg-> truck_start_switch;           //# 车辆启动,false-关 true-开
-                        CDTC.truck_turn_off_switch =  New_Msg->truck_turn_off_switch;       //# 车辆熄火,false-关 true-开
+                        CDTC.horn_cmd                =  New_Msg->horn_b;                  //# 喇叭控制量 0/1/2/3 0：不响，1-3代表响1~3声；交通路口鸣笛
+                        CDTC.high_beam_switch        =  New_Msg->high_beam_switch; 		  //# 远光灯开关,false-关 true-开
+                        CDTC.dipped_headlight_switch =  New_Msg->dipped_headlight_switch; //# 近光灯开关,false-关 true-开
+                        CDTC.fog_lamp_switch         =  New_Msg->fog_lamp_switch;	      //# 雾灯,false-关 true-开
+                        CDTC.night_light_swith       =  New_Msg->lighting_b;              //# 夜行灯,false-关 true-开
+                        CDTC.left_turn_light_switch  =  New_Msg->leftLamp_b;              //# 左转灯,false-关 true-开
+                        CDTC.right_turn_light_switch =  New_Msg->rightLamp_b;	          //# 右转灯,false-关 true-开
+                        CDTC.double_flash_switch     =  New_Msg->bothLamp_b;              //# 双闪,false-关 true-开
+                        CDTC.truck_start_switch      =  0;
+                        CDTC.truck_turn_off_switch   =  0;
                         my_pub_2.publish(CDTC);
-                    }
-                    else if(New_Msg->NTE200_Msg_Type==3)
-                    {
+
                         my_project_test::CmdFromSecurityToCAN CSTC;
-                        CSTC.upper_fault_level   = New_Msg->upper_fault_level;              //#上层故障等级 0/1/2/3 1-绿色，表示心跳 2-黄色 3-红色等级故障
-                        CSTC.emergency_brake_cmd = New_Msg->emergency_brake_cmd;            //#紧急制动 0：解除，1：实施，发生紧急事件时实施，执行层实施100%电缓行+100%液压制动
+                        CSTC.emergency_brake_cmd = 0;
+                        CSTC.emergency_brake_cmd = New_Msg->emergencyBrake_b;          //#紧急制动 0：解除，1：实施，发生紧急事件时实施，执行层实施100%电缓行+100%液压制动
                         my_pub_3.publish(CSTC);
-                    }
                 }
                 Update_Flag=0;
             }
             ros::spinOnce();
             usleep(20000);
         }
-
+        free(New_Msg);
     }
     else if(CurChannel.compare("Can_Shark")==0)
     {
