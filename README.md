@@ -11,3 +11,9 @@ modify : wheelangle
 
 #modify 2020-09-02
 modify:增加车型093E
+
+#modify 2020-09-03
+modify:增加车型NTE200
+针对该车型，在发送包的时候，需要设置结构体 uiToCanMsg_t. NTE200_Msg_Type   //1:Control 2:Decision 3:Security
+
+
