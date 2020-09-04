@@ -224,7 +224,6 @@ void* pth_callback(void* arg)
             ros::spinOnce();
             usleep(20000);
         }
-        free(New_Msg);
     }
     else if(CurChannel.compare("Can_Shark")==0)
     {
